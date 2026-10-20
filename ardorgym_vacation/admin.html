@@ -177,6 +177,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
               <option value="annual">연차</option>
               <option value="summer">여름휴가</option>
               <option value="reserve">예비군</option>
+              <option value="special">특별휴가</option>
             </select>
           </div>
           <div class="fg" style="margin:0"><label class="fl">시작일</label><input type="date" class="fi" id="adminPastStart"></div>
@@ -188,7 +189,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
     <div class="card">
       <div class="ch">👥 전체 직원 목록<button class="btn btn-p" onclick="loadEmployees()" style="font-size:12px;padding:6px 12px">새로고침</button></div>
       <div style="padding:0"><table class="emp-table">
-        <thead><tr><th>이름</th><th>입사일</th><th>부서/직급</th><th>지점</th><th>연차 현황</th><th>관리</th></tr></thead>
+        <thead><tr><th>이름</th><th>입사일</th><th>부서/직급</th><th>지점</th><th>연차 현황</th><th>특별휴가 (사용/부여)</th><th>관리</th></tr></thead>
         <tbody id="empBody"></tbody>
       </table></div>
     </div>
@@ -296,7 +297,7 @@ async function loadRequests(){
 function renderReqList(id,reqs,action){
   const el=document.getElementById(id);
   if(!reqs.length){el.innerHTML=`<div class="empty"><div class="icon">${action?'🎉':'📋'}</div><p>${action?'대기 중인 신청이 없습니다!':'완료된 내역이 없습니다.'}</p></div>`;return;}
-  const TI={annual:'🌿',summer:'☀️',reserve:'🪖'};
+  const TI={annual:'🌿',summer:'☀️',reserve:'🪖',special:'🎁'};
   el.innerHTML=reqs.map(r=>`
     <div class="ri">
       <div class="rav">${r.emp_name[0]}</div>
@@ -405,7 +406,7 @@ async function loadEmployees(){
       </div>`).join('');
   }
   const tbody=document.getElementById('empBody');
-  if(!(approved||[]).length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--gray-400)">등록된 직원이 없습니다.</td></tr>`;return;}
+  if(!(approved||[]).length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-400)">등록된 직원이 없습니다.</td></tr>`;return;}
   const now=new Date();const thisY=now.getFullYear();const thisM=now.getMonth()+1;
   const monthStart=`${thisY}-${String(thisM).padStart(2,'0')}-01`;
   const monthEnd=`${thisY}-${String(thisM).padStart(2,'0')}-${new Date(thisY,thisM,0).getDate()}`;
@@ -415,6 +416,7 @@ async function loadEmployees(){
     const ur=reqs.filter(r=>r.emp_id===u.id);
     const usedAMonth=ur.filter(r=>['annual','reserve'].includes(r.type)&&r.start_date>=monthStart&&r.start_date<=monthEnd).reduce((s,r)=>s+parseFloat(r.days),0);
     const usedS=ur.filter(r=>r.type==='summer').reduce((s,r)=>s+parseFloat(r.days),0);
+    const usedSp=ur.filter(r=>r.type==='special').reduce((s,r)=>s+parseFloat(r.days),0);
     const diff=Math.floor((new Date()-new Date(u.join_date))/(1000*60*60*24));
     const elig=diff>=365;
     return`<tr>
@@ -423,6 +425,7 @@ async function loadEmployees(){
       <td><input type="text" class="di" value="${u.dept||''}" placeholder="부서/직급" onblur="saveField(${u.id},'dept',this.value)"></td>
       <td><input type="text" class="di" value="${u.branch||''}" placeholder="지점명" onblur="saveField(${u.id},'branch',this.value)"></td>
       <td>${elig?`<span style="font-size:12px">이번달 <b>${usedAMonth}/1</b>일 · 여름 <b>${usedS}/3</b>일</span>`:`<span style="font-size:12px;color:var(--gray-400)">입사 1년 미만</span>`}</td>
+      <td><span style="font-size:12px">사용 <b>${usedSp}</b> / 부여 </span><input type="number" class="di" style="width:64px" min="0" step="0.5" value="${parseFloat(u.special_vacation)||0}" onchange="saveSpecial(${u.id},this.value)"><span style="font-size:12px;color:var(--gray-400)"> 일</span></td>
       <td><button class="btn btn-d" style="font-size:12px;padding:6px 12px" onclick="removeUser(${u.id})">삭제</button></td>
     </tr>`;
   }).join('');
@@ -446,6 +449,13 @@ async function removeUser(id){
 }
 async function saveField(id,field,val){
   await sb.from('users').update({[field]:val}).eq('id',id);
+}
+async function saveSpecial(id,val){
+  const n=parseFloat(val);
+  if(isNaN(n)||n<0){toast('0 이상의 숫자를 입력해주세요.','e');loadEmployees();return;}
+  const{error}=await sb.from('users').update({special_vacation:n}).eq('id',id);
+  if(error){toast('저장 중 오류가 발생했습니다.','e');return;}
+  toast('특별휴가 일수가 저장되었습니다. 🎁','s');
 }
 
 // 관리자 기사용 연차 추가
@@ -483,7 +493,7 @@ async function addAdminPast(){
   if(!start){toast('시작일을 선택해주세요.','e');return;}
   const days=workdaysAdmin(start,end);
   if(days<=0){toast('주말을 제외한 근무일이 없습니다.','e');return;}
-  const TN={annual:'연차',summer:'여름휴가',reserve:'예비군'};
+  const TN={annual:'연차',summer:'여름휴가',reserve:'예비군',special:'특별휴가'};
   const now=new Date();
   const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const{error}=await sb.from('vacation_requests').insert({
