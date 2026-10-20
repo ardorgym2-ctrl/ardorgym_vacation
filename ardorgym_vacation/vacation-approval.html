@@ -122,6 +122,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
 .be.approved{background:var(--success-light);color:var(--success)}
 .be.pending{background:var(--warning-light);color:var(--warning)}
 .be.summer{background:#FDE8D8;color:#EA6C00}
+.be.special{background:#FCE7F3;color:#DB2777}
 .be.other{background:var(--danger-light);color:var(--danger)}
 .ib{background:var(--primary-light);border-left:3px solid var(--primary);border-radius:0 var(--rs) var(--rs) 0;padding:12px 16px;font-size:13px;color:#4347CC;margin-bottom:16px}
 .wb{background:var(--warning-light);border-left:3px solid var(--warning);border-radius:0 var(--rs) var(--rs) 0;padding:12px 16px;font-size:13px;color:#92400E}
@@ -173,6 +174,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
             <div class="stat hi"><div class="v" id="remA">-</div><div class="l">다음달 연차</div></div>
             <div class="stat used"><div class="v" id="usedA">-</div><div class="l">다음달 사용</div></div>
             <div class="stat" style="grid-column:1/-1"><div class="v" id="remS" style="color:#F59E0B">-</div><div class="l">여름휴가 잔여</div></div>
+            <div class="stat" style="grid-column:1/-1"><div class="v" id="remSp" style="color:#DB2777">-</div><div class="l">특별휴가 잔여 <span id="spDetail" style="color:var(--gray-400)"></span></div></div>
           </div>
         </div>
         <div class="vbar">
@@ -196,6 +198,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
           <div>☀️ 여름휴가는 <b>입사 즉시</b> 사용 가능</div>
           <div>📅 연차는 <b>전달 10일까지</b> 신청 가능</div>
           <div>☀️ 여름휴가 <b>3일</b> (월 제한 없음)</div>
+          <div>🎁 특별휴가는 <b>관리자가 부여한 일수</b>만큼 사용 (월·입사기간 제한 없음)</div>
           <div>🏢 같은 지점 <b>동일 날짜 중복 불가</b></div>
           <div>📌 주말 제외 근무일 기준</div>
           <div style="margin-top:8px" id="eligNote"></div>
@@ -213,7 +216,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
         <div class="card">
           <div class="card-header">휴가 신청</div>
           <div class="card-body">
-            <div id="noElig" class="wb" style="display:none">⚠️ 입사 1년 미만으로 연차/예비군은 사용할 수 없습니다. 여름휴가는 신청 가능합니다.</div>
+            <div id="noElig" class="wb" style="display:none">⚠️ 입사 1년 미만으로 연차/예비군은 사용할 수 없습니다. 여름휴가·특별휴가는 신청 가능합니다.</div>
             <div id="noBranch" class="wb" style="display:none">⚠️ 지점이 배정되지 않았습니다. 관리자에게 문의하세요.</div>
             <div class="ag">
               <div>
@@ -232,6 +235,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
                     <option value="annual">연차 휴가</option>
                     <option value="summer">여름휴가</option>
                     <option value="reserve">예비군</option>
+                    <option value="special">특별휴가 (관리자 부여분)</option>
                   </select>
                 </div>
                 <div id="monthNote" class="ib" style="display:none;margin-bottom:12px"></div>
@@ -252,7 +256,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
           <div class="card-body" id="pastBody" style="display:none">
             <div class="wb" style="margin-bottom:16px">⚠️ 이미 사용한 연차를 기록용으로 추가합니다. 자동 승인 처리됩니다.</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
-              <div class="fg" style="margin:0"><label class="fl">유형</label><select class="fs" id="pastType"><option value="annual">연차</option><option value="summer">여름휴가</option><option value="reserve">예비군</option></select></div>
+              <div class="fg" style="margin:0"><label class="fl">유형</label><select class="fs" id="pastType"><option value="annual">연차</option><option value="summer">여름휴가</option><option value="reserve">예비군</option><option value="special">특별휴가</option></select></div>
               <div class="fg" style="margin:0"><label class="fl">시작일</label><input type="date" class="fi" id="pastStart"></div>
               <div class="fg" style="margin:0"><label class="fl">종료일</label><input type="date" class="fi" id="pastEnd"></div>
               <button class="btn btn-p" onclick="addPast()">추가</button>
@@ -276,7 +280,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
       <div style="color:var(--gray-500);margin-bottom:4px">현재 내용</div>
       <div id="editCurrentInfo" style="font-weight:600;color:var(--gray-800)"></div>
     </div>
-    <div class="fg"><label class="fl">유형 변경</label><select class="fs" id="editType"><option value="annual">연차</option><option value="summer">여름휴가</option><option value="reserve">예비군</option></select></div>
+    <div class="fg"><label class="fl">유형 변경</label><select class="fs" id="editType"><option value="annual">연차</option><option value="summer">여름휴가</option><option value="reserve">예비군</option><option value="special">특별휴가</option></select></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="fg"><label class="fl">시작일</label><input type="date" class="fi" id="editStart"></div>
       <div class="fg"><label class="fl">종료일</label><input type="date" class="fi" id="editEnd"></div>
@@ -308,9 +312,11 @@ function workdays(s,e){let c=0;for(let d=new Date(s+'T00:00:00');d<=new Date(e+'
 function toast(msg,type=''){const w=document.getElementById('toastWrap');const t=document.createElement('div');t.className=`toast ${type}`;const ic={s:'✅',e:'❌',w:'⚠️'};t.innerHTML=`${ic[type]||'💬'} ${msg}`;w.appendChild(t);setTimeout(()=>t.remove(),3100);}
 function getYM(dateStr){const p=dateStr.split('-');return{y:parseInt(p[0]),m:parseInt(p[1])};}
 
-const TN={annual:'연차',summer:'여름휴가',reserve:'예비군'};
-const TC={annual:'#EEF2FF',summer:'#FEF3C7',reserve:'#FFF7ED'};
-const TI={annual:'🌿',summer:'☀️',reserve:'🪖'};
+const TN={annual:'연차',summer:'여름휴가',reserve:'예비군',special:'특별휴가'};
+const TC={annual:'#EEF2FF',summer:'#FEF3C7',reserve:'#FFF7ED',special:'#FCE7F3'};
+const TI={annual:'🌿',summer:'☀️',reserve:'🪖',special:'🎁'};
+// 월/입사기간 제한 없이 쓰는 유형 (여름휴가, 관리자가 부여하는 특별휴가)
+function isFreeType(t){return t==='summer'||t==='special';}
 
 let statsCache={};
 // 지점 내 다른 직원 휴가 날짜 캐시
@@ -332,6 +338,8 @@ async function loadStats(){
   // 이번달 연차 사용량
   const usedAThisMonth=r.filter(x=>['annual','reserve'].includes(x.type)&&x.start_date>=monthStart&&x.start_date<=monthEnd).reduce((s,x)=>s+parseFloat(x.days),0);
   const usedSummer=r.filter(x=>x.type==='summer').reduce((s,x)=>s+parseFloat(x.days),0);
+  const usedSpecial=r.filter(x=>x.type==='special').reduce((s,x)=>s+parseFloat(x.days),0);
+  const grantedSpecial=parseFloat(CU.special_vacation)||0;
 
   const diffDays=Math.floor((new Date()-new Date(CU.join_date))/(1000*60*60*24));
   // 신청 가능 월 계산:
@@ -352,6 +360,7 @@ async function loadStats(){
     remainAnnualThisMonth:Math.max(0,1-usedAThisMonth),
     remainAnnualNextMonth:Math.max(0,1-usedANextMonth),
     remainSummer:Math.max(0,3-usedSummer),
+    usedSpecial,grantedSpecial,remainSpecial:Math.max(0,grantedSpecial-usedSpecial),
     diffDays,
     isEligible:diffDays>=365,
     thisY,thisM,
@@ -369,6 +378,8 @@ async function loadStats(){
   document.getElementById('remA').textContent=statsCache.remainAnnualNextMonth;
   document.getElementById('usedA').textContent=usedANextMonth;
   document.getElementById('remS').textContent=statsCache.remainSummer;
+  document.getElementById('remSp').textContent=statsCache.remainSpecial;
+  document.getElementById('spDetail').textContent=`(사용 ${usedSpecial} / 부여 ${grantedSpecial})`;
 
   const ap=Math.min(100,Math.round(usedANextMonth/1*100));
   const sp=Math.min(100,Math.round(usedSummer/3*100));
@@ -383,11 +394,11 @@ async function loadStats(){
   if(!statsCache.isEligible){el.innerHTML=`⏳ 연차 가능까지 <b>${365-diffDays}일</b> 남음`;el.style.color='var(--warning)';}
   else{el.innerHTML='✅ <b>연차 사용 가능</b>';el.style.color='var(--success)';}
   const curType=document.getElementById('vType').value;
-  document.getElementById('noElig').style.display=(!statsCache.isEligible&&curType!=='summer')?'block':'none';
+  document.getElementById('noElig').style.display=(!statsCache.isEligible&&!isFreeType(curType))?'block':'none';
   document.getElementById('noBranch').style.display=(!CU.branch)?'block':'none';
   // 여름휴가는 1년 미만도 신청 가능
   const vType=document.getElementById('vType').value;
-  document.getElementById('submitBtn').disabled=(!statsCache.isEligible&&vType!=='summer')||!CU.branch;
+  document.getElementById('submitBtn').disabled=(!statsCache.isEligible&&!isFreeType(vType))||!CU.branch;
 
   // 지점 차단 날짜 로드
   await loadBranchBlockedDates();
@@ -427,7 +438,7 @@ function initMini(){const n=new Date();mY=n.getFullYear();mM=n.getMonth()+1;rend
 
 function renderMini(){
   const type=document.getElementById('vType').value;
-  const isSummer=type==='summer';
+  const isSummer=isFreeType(type);
   const dows=['일','월','화','수','목','금','토'];
   const fd=new Date(mY,mM-1,1).getDay();
   const ld=new Date(mY,mM,0).getDate();
@@ -478,14 +489,14 @@ function onTypeChange(){
   // 여름휴가는 1년 미만도 신청 가능하므로 버튼/안내 갱신
   const t=document.getElementById('vType').value;
   const elig=statsCache.isEligible;
-  document.getElementById('noElig').style.display=(!elig&&t!=='summer')?'block':'none';
-  document.getElementById('submitBtn').disabled=(!elig&&t!=='summer')||!CU.branch;
+  document.getElementById('noElig').style.display=(!elig&&!isFreeType(t))?'block':'none';
+  document.getElementById('submitBtn').disabled=(!elig&&!isFreeType(t))||!CU.branch;
 }
 
 function selDay(ds){
   const t=document.getElementById('vType').value;
   const half=t==='half_am'||t==='half_pm';
-  const isSummer=t==='summer';
+  const isSummer=isFreeType(t);
   // 연차: 오직 다음달만 신청 가능 (10일 이전에만)
   if(!isSummer){
     const{canApplyNextMonth,nextY,nextM}=statsCache;
@@ -530,7 +541,7 @@ function updRange(){
   else bwarn.style.display='none';
 
   let rem;
-  if(t==='summer'){rem=statsCache.remainSummer;}
+  if(t==='summer'){rem=statsCache.remainSummer;}else if(t==='special'){rem=statsCache.remainSpecial;}
   else{rem=statsCache.remainAnnualNextMonth;}
   if(days>rem){warn.style.display='block';warn.textContent=`⚠️ 신청일(${days}일)이 잔여 휴가(${rem}일)를 초과합니다.`;}
   else warn.style.display='none';
@@ -541,7 +552,7 @@ async function submitVacation(){
   if(!statsCache.isEligible&&t!=='summer'){toast('입사 1년 미만으로 연차를 사용할 수 없습니다.','e');return;}
   if(!CU.branch){toast('지점이 배정되지 않았습니다.','e');return;}
   const half=t==='half_am'||t==='half_pm';
-  const isSummer=t==='summer';
+  const isSummer=isFreeType(t);
   if(!rS){toast('날짜를 선택해주세요.','e');return;}
   if(!rE&&!half){toast('종료일을 선택해주세요.','e');return;}
   const end=rE||rS;
@@ -549,7 +560,7 @@ async function submitVacation(){
   if(days<=0){toast('주말을 제외한 근무일이 없습니다.','e');return;}
   // 연차는 항상 다음달 기준
   let rem;
-  if(t==='summer'){rem=statsCache.remainSummer;}
+  if(t==='summer'){rem=statsCache.remainSummer;}else if(t==='special'){rem=statsCache.remainSpecial;}
   else{rem=statsCache.remainAnnualNextMonth;}
   if(days>rem){toast(`잔여 휴가(${rem}일)가 부족합니다.`,'e');return;}
 
@@ -580,7 +591,7 @@ async function submitVacation(){
 function togglePast(){const b=document.getElementById('pastBody');const i=document.getElementById('pastIcon');const o=b.style.display==='block';b.style.display=o?'none':'block';i.textContent=o?'＋':'－';}
 async function addPast(){
   const pt=document.getElementById('pastType').value;
-  if(!statsCache.isEligible&&pt!=='summer'){toast('입사 1년 미만으로 연차를 사용할 수 없습니다.','e');return;}
+  if(!statsCache.isEligible&&!isFreeType(pt)){toast('입사 1년 미만으로 연차를 사용할 수 없습니다.','e');return;}
   const t=document.getElementById('pastType').value;
   const s=document.getElementById('pastStart').value;
   const e=document.getElementById('pastEnd').value||s;
@@ -705,7 +716,7 @@ async function renderBigCal(){
     const myEv=getMyEv(ds);const brEv=getBranchEv(ds);
     let nc='bc-num';if(ds===ts)nc+=' today';if(dow===0)nc+=' sn';if(dow===6)nc+=' st2';
     h+=`<div class="bc-cell"><div class="${nc}">${d}</div>
-      ${myEv.map(e=>`<div class="be ${e.status==='approved'?'approved':'pending'} ${e.type==='summer'?'summer':''}" title="내 휴가">${e.type_name}</div>`).join('')}
+      ${myEv.map(e=>`<div class="be ${e.status==='approved'?'approved':'pending'} ${e.type==='summer'?'summer':e.type==='special'?'special':''}" title="내 휴가">${e.type_name}</div>`).join('')}
       ${brEv.map(e=>`<div class="be other" title="${e.emp_name}">🚫 ${e.emp_name}</div>`).join('')}
     </div>`;
   }
