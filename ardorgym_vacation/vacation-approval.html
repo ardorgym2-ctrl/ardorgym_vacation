@@ -534,6 +534,7 @@ function updRange(){
   let rem;
   if(t==='summer'){rem=statsCache.remainSummer;}
   else if(t==='special'){rem=statsCache.remainSpecial||0;}
+  else if(t==='reserve'){rem=Infinity;}
   else{rem=statsCache.remainAnnual||0;}
   if(days>rem){warn.style.display='block';warn.textContent=`⚠️ 신청일(${days}일)이 잔여 휴가(${rem}일)를 초과합니다.`;}
   else warn.style.display='none';
@@ -551,9 +552,14 @@ async function submitVacation(){
   const end=rE||rS;
   const days=half?.5:workdays(rS,end);
   if(days<=0){toast('주말을 제외한 근무일이 없습니다.','e');return;}
+  // 사용일 2주 전까지만 신청 가능 (신청 시점에 다시 확인)
+  const minNow=(()=>{const d=new Date();d.setDate(d.getDate()+14);return d2s(d.getFullYear(),d.getMonth()+1,d.getDate());})();
+  if(rS<minNow){toast(`사용일 2주 전까지만 신청할 수 있습니다. (${minNow.replace(/-/g,'.')} 이후 날짜 선택)`,'e');return;}
   let rem;
   if(t==='summer'){rem=statsCache.remainSummer;}
-  else{rem=statsCache.remainAnnualNextMonth||10;}
+  else if(t==='special'){rem=statsCache.remainSpecial||0;}
+  else if(t==='reserve'){rem=Infinity;}
+  else{rem=statsCache.remainAnnual||0;}
   if(days>rem){toast(`잔여 휴가(${rem}일)가 부족합니다.`,'e');return;}
 
   // 최종 차단 날짜 재확인
