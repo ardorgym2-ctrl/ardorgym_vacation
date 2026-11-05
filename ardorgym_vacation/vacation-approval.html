@@ -282,8 +282,8 @@ body{font-family:'Pretendard',sans-serif;background:var(--gray-50);color:var(--g
 
 <div class="toast-wrap" id="toastWrap"></div>
 <script>
-const SURL='https://raqslexylkpbpkbpwpzr.supabase.co';
-const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhcXNsZXh5bGtwYnBrYnB3cHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MDEzMTYsImV4cCI6MjA5Mjk3NzMxNn0.ucf-7PrRmAHsl5_bq_7LYzIUUZ5Tf1Eksa4ihV1eLC0';
+const SURL='https://qehvjhfkgogiwvxzvxxi.supabase.co';
+const SKEY='sb_publishable_vuixqQ3Sn65or57gaOmQBg_ZiK0HykG';
 const sb=supabase.createClient(SURL,SKEY);
 
 let CU=JSON.parse(localStorage.getItem('ardor_currentUser')||'null');
@@ -534,7 +534,6 @@ function updRange(){
   let rem;
   if(t==='summer'){rem=statsCache.remainSummer;}
   else if(t==='special'){rem=statsCache.remainSpecial||0;}
-  else if(t==='reserve'){rem=Infinity;}
   else{rem=statsCache.remainAnnual||0;}
   if(days>rem){warn.style.display='block';warn.textContent=`⚠️ 신청일(${days}일)이 잔여 휴가(${rem}일)를 초과합니다.`;}
   else warn.style.display='none';
@@ -552,14 +551,9 @@ async function submitVacation(){
   const end=rE||rS;
   const days=half?.5:workdays(rS,end);
   if(days<=0){toast('주말을 제외한 근무일이 없습니다.','e');return;}
-  // 사용일 2주 전까지만 신청 가능 (신청 시점에 다시 확인)
-  const minNow=(()=>{const d=new Date();d.setDate(d.getDate()+14);return d2s(d.getFullYear(),d.getMonth()+1,d.getDate());})();
-  if(rS<minNow){toast(`사용일 2주 전까지만 신청할 수 있습니다. (${minNow.replace(/-/g,'.')} 이후 날짜 선택)`,'e');return;}
   let rem;
   if(t==='summer'){rem=statsCache.remainSummer;}
-  else if(t==='special'){rem=statsCache.remainSpecial||0;}
-  else if(t==='reserve'){rem=Infinity;}
-  else{rem=statsCache.remainAnnual||0;}
+  else{rem=statsCache.remainAnnualNextMonth||10;}
   if(days>rem){toast(`잔여 휴가(${rem}일)가 부족합니다.`,'e');return;}
 
   // 최종 차단 날짜 재확인
